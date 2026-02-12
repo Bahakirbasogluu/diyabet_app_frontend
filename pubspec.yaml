@@ -1,0 +1,51 @@
+name: diyabet_app
+description: "Diyabet Takip - Sağlık verisi takip ve AI destekli kişisel diyabet yönetim uygulaması"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.0
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Networking
+  dio: ^5.7.0
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Local Storage
+  shared_preferences: ^2.5.3
+
+  # Firebase
+  firebase_core: ^3.12.1
+  firebase_messaging: ^15.2.4
+
+  # UI & Icons
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+
+  # Routing
+  go_router: ^15.1.2
+
+  # Utilities
+  intl: ^0.20.2
+  flutter_secure_storage: ^9.2.4
+  url_launcher: ^6.3.1
+  package_info_plus: ^8.3.0
+  connectivity_plus: ^6.1.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
