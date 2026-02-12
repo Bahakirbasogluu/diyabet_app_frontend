@@ -10,9 +10,15 @@ final dashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final api = ref.read(apiClientProvider);
   try {
     final healthResp = await api.get(ApiConstants.health, queryParameters: {'limit': '5'});
-    final statsResp = await api.get(ApiConstants.healthStats);
+    final statsResp = await api.get(ApiConstants.healthStats, queryParameters: {'record_type': 'GLUCOSE'});
+    
+    final recentRaw = healthResp.data;
+    final recentList = recentRaw is Map && recentRaw.containsKey('items') 
+        ? recentRaw['items'] as List 
+        : [];
+        
     return {
-      'recent': healthResp.data is List ? healthResp.data : [],
+      'recent': recentList,
       'stats': statsResp.data ?? {},
     };
   } catch (_) {

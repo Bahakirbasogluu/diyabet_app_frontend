@@ -3,10 +3,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/constants/api_constants.dart';
 
 // Auth state provider
-final authStateProvider = FutureProvider<bool>((ref) async {
-  final apiClient = ref.read(apiClientProvider);
-  return await apiClient.hasToken();
-});
+// Auth state provider removed - merged into AuthNotifier
 
 // Auth notifier
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
@@ -19,6 +16,7 @@ class AuthState {
   final Map<String, dynamic>? user;
   final bool requiresMfa;
   final String? mfaEmail;
+  final bool isAuthenticated;
 
   const AuthState({
     this.isLoading = false,
@@ -26,6 +24,7 @@ class AuthState {
     this.user,
     this.requiresMfa = false,
     this.mfaEmail,
+    this.isAuthenticated = false,
   });
 
   AuthState copyWith({
@@ -34,6 +33,7 @@ class AuthState {
     Map<String, dynamic>? user,
     bool? requiresMfa,
     String? mfaEmail,
+    bool? isAuthenticated,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
@@ -41,6 +41,7 @@ class AuthState {
       user: user ?? this.user,
       requiresMfa: requiresMfa ?? this.requiresMfa,
       mfaEmail: mfaEmail ?? this.mfaEmail,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
     );
   }
 }
@@ -48,7 +49,16 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final ApiClient _api;
 
-  AuthNotifier(this._api) : super(const AuthState());
+  AuthNotifier(this._api) : super(const AuthState()) {
+    _checkInitialToken();
+  }
+
+  Future<void> _checkInitialToken() async {
+    final hasToken = await _api.hasToken();
+    if (hasToken) {
+      state = state.copyWith(isAuthenticated: true);
+    }
+  }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -77,7 +87,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         data['refresh_token'],
       );
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, isAuthenticated: true);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -107,7 +117,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         data['refresh_token'],
       );
 
-      state = state.copyWith(isLoading: false);
+      state = state.copyWith(isLoading: false, isAuthenticated: true);
       return true;
     } catch (e) {
       state = state.copyWith(
@@ -136,6 +146,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(
         isLoading: false,
         requiresMfa: false,
+        isAuthenticated: true,
       );
       return true;
     } catch (e) {
@@ -149,7 +160,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     await _api.clearTokens();
-    state = const AuthState();
+    state = const AuthState(isAuthenticated: false);
   }
 
   String _getErrorMessage(dynamic error) {

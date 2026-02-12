@@ -14,12 +14,12 @@ import '../../features/auth/providers/auth_provider.dart';
 import '../widgets/app_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authStateProvider);
+  final authState = ref.watch(authProvider);
 
   return GoRouter(
     initialLocation: '/login',
     redirect: (context, state) {
-      final isLoggedIn = authState.value == true;
+      final isLoggedIn = authState.isAuthenticated;
       final isAuthRoute = state.matchedLocation == '/login' ||
           state.matchedLocation == '/register' ||
           state.matchedLocation == '/mfa' ||

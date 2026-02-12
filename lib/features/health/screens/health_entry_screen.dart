@@ -49,32 +49,50 @@ class _HealthEntryScreenState extends ConsumerState<HealthEntryScreen> {
 
     try {
       final api = ref.read(apiClientProvider);
-      final data = <String, dynamic>{
-        'record_type': _recordType,
-        'blood_sugar': double.parse(_glucoseController.text),
-      };
+      final contextNote = _recordTypes[_recordType] ?? '';
+      final userNote = _notesController.text.isNotEmpty ? ' - ${_notesController.text}' : '';
+      final finalNote = '$contextNote$userNote'.trim();
 
+      // 1. Glucose
+      await api.post(ApiConstants.health, data: {
+        'type': 'GLUCOSE',
+        'value': double.parse(_glucoseController.text),
+        'note': finalNote.isNotEmpty ? finalNote : null,
+      });
+
+      // 2. Weight
       if (_weightController.text.isNotEmpty) {
-        data['weight'] = double.parse(_weightController.text);
-      }
-      if (_systolicController.text.isNotEmpty && _diastolicController.text.isNotEmpty) {
-        data['systolic_bp'] = int.parse(_systolicController.text);
-        data['diastolic_bp'] = int.parse(_diastolicController.text);
-      }
-      if (_heartRateController.text.isNotEmpty) {
-        data['heart_rate'] = int.parse(_heartRateController.text);
-      }
-      if (_notesController.text.isNotEmpty) {
-        data['notes'] = _notesController.text;
+        await api.post(ApiConstants.health, data: {
+          'type': 'WEIGHT',
+          'value': double.parse(_weightController.text),
+        });
       }
 
-      await api.post(ApiConstants.health, data: data);
+      // 3. Blood Pressure
+      if (_systolicController.text.isNotEmpty && _diastolicController.text.isNotEmpty) {
+        await api.post(ApiConstants.health, data: {
+          'type': 'BLOOD_PRESSURE_SYSTOLIC',
+          'value': double.parse(_systolicController.text),
+        });
+        await api.post(ApiConstants.health, data: {
+          'type': 'BLOOD_PRESSURE_DIASTOLIC',
+          'value': double.parse(_diastolicController.text),
+        });
+      }
+
+      // 4. Heart Rate
+      if (_heartRateController.text.isNotEmpty) {
+        await api.post(ApiConstants.health, data: {
+          'type': 'HEART_RATE',
+          'value': double.parse(_heartRateController.text),
+        });
+      }
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Kayıt başarıyla eklendi ✓'),
+          content: const Text('Kayıtlar başarıyla eklendi ✓'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -91,7 +109,7 @@ class _HealthEntryScreenState extends ConsumerState<HealthEntryScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Kayıt eklenemedi'),
+          content: const Text('Kayıt eklenemedi. Lütfen tekrar deneyin.'),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
